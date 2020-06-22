@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Title>ExcelEnumerable</Title>
+        <Description>ExcelDataReader wrapper for supporting LINQ while reading excel files.</Description>
+        <Copyright>vecilije</Copyright>
+        <PackageProjectUrl>https://github.com/vecilije/ExcelEnumerable</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/vecilije/ExcelEnumerable/blob/master/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/vecilije/ExcelEnumerable</RepositoryUrl>
+        <RepositoryType>public</RepositoryType>
+        <PackageTags>excel, linq</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="ExcelDataReader" Version="3.6.0" />
+    </ItemGroup>
+
+</Project>
