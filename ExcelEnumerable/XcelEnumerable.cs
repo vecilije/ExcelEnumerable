@@ -8,10 +8,11 @@ using ExcelDataReader;
 
 namespace ExcelEnumerable
 {
-  public class XcelEnumerable<TResult> : IExcelEnumerable<TResult>
-    where TResult : class
+  public class XcelEnumerable<T> : IExcelEnumerable<T>
+    where T : class
   {
-    private readonly Stream _stream;
+    private readonly IExcelDataReader _excelDataReader;
+    private readonly Dictionary<int, PropertyInfo> _columnsMapping;
 
     public XcelEnumerable(string fileName)
       : this(File.OpenRead(fileName))
@@ -20,12 +21,54 @@ namespace ExcelEnumerable
 
     public XcelEnumerable(Stream stream)
     {
-      _stream = stream;
+      _excelDataReader = ExcelReaderFactory.CreateReader(stream);
+      _columnsMapping = new Dictionary<int, PropertyInfo>();
     }
 
-    public IEnumerator<TResult> GetEnumerator()
+    public IEnumerator<T> GetEnumerator()
     {
-      return ExcelEnumerableGatewayEnumerator.Create(_stream);
+      MapColumnsWithProperties();
+
+      while (_excelDataReader.Read())
+      {
+        var resultItem = Activator.CreateInstance<T>();
+        foreach (var columnMap in _columnsMapping)
+          columnMap.Value.SetValue(resultItem, GetValue(columnMap.Value.PropertyType, columnMap.Key));
+
+        yield return resultItem;
+      }
+    }
+
+    private void MapColumnsWithProperties()
+    {
+      //  Read first row for column names mapping
+      _excelDataReader.Read();
+      var properties = typeof(T).GetProperties();
+
+      //  Map column names
+      for (var i = 0; i < _excelDataReader.FieldCount; i++)
+      {
+        var columnName = _excelDataReader.GetString(i);
+        if (string.IsNullOrWhiteSpace(columnName))
+          continue;
+
+        var matchingProperty = properties.SingleOrDefault(p =>
+          (p.GetCustomAttribute<XcelEnumerableColumnAttribute>(false)?.ColumnName
+            .Equals(columnName, StringComparison.OrdinalIgnoreCase) ?? false)
+          || p.Name.Equals(columnName, StringComparison.OrdinalIgnoreCase));
+        if (matchingProperty == null)
+          continue;
+
+        _columnsMapping.Add(i, matchingProperty);
+      }
+    }
+
+    private object GetValue(Type propertyType, int columnIndex)
+    {
+      var value = _excelDataReader.GetValue(columnIndex);
+      return value == null
+        ? (propertyType.IsValueType ? Activator.CreateInstance(propertyType) : null)
+        : Convert.ChangeType(value, propertyType);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -35,100 +78,7 @@ namespace ExcelEnumerable
 
     public void Dispose()
     {
-      _stream?.Dispose();
-    }
-
-
-    private class ExcelEnumerableGatewayEnumerator : IEnumerator<TResult>
-    {
-      private readonly IExcelDataReader _excelDataReader;
-      private readonly Dictionary<int, PropertyInfo> _columnsMapping;
-
-      private ExcelEnumerableGatewayEnumerator(
-        IExcelDataReader excelDataReader,
-        Dictionary<int, PropertyInfo> columnsMapping)
-      {
-        _excelDataReader = excelDataReader;
-        _columnsMapping = columnsMapping;
-      }
-
-      public static ExcelEnumerableGatewayEnumerator Create(Stream stream)
-      {
-        var excelDataReader = ExcelReaderFactory.CreateReader(stream);
-
-        //  Read first row for column names mapping
-        excelDataReader.Read();
-        var properties = typeof(TResult).GetProperties();
-
-        //  Map column names
-        var columnsMapping = new Dictionary<int, PropertyInfo>();
-
-        for (var i = 0; i < excelDataReader.FieldCount; i++)
-        {
-          var columnName = excelDataReader.GetString(i);
-          if (string.IsNullOrWhiteSpace(columnName))
-          {
-            continue;
-          }
-
-          var matchingProperty = properties.SingleOrDefault(p =>
-            (p.GetCustomAttribute<XcelEnumerableColumnAttribute>(false)?.ColumnName
-              .Equals(columnName, StringComparison.OrdinalIgnoreCase) ?? false)
-            || p.Name.Equals(columnName, StringComparison.OrdinalIgnoreCase));
-          if (matchingProperty == null)
-          {
-            continue;
-          }
-
-          columnsMapping.Add(i, matchingProperty);
-        }
-
-        return new ExcelEnumerableGatewayEnumerator(excelDataReader, columnsMapping);
-      }
-
-      public bool MoveNext()
-      {
-        if (!_excelDataReader.Read()) return false;
-
-        Current = CreateCurrent();
-        return true;
-      }
-
-      private TResult CreateCurrent()
-      {
-        var resultInstance = Activator.CreateInstance<TResult>();
-
-        foreach (var map in _columnsMapping)
-        {
-          map.Value.SetValue(resultInstance,
-            GetValue(map.Value.PropertyType, map.Key));
-        }
-
-        return resultInstance;
-      }
-
-      private object GetValue(Type propertyType, int columnIndex)
-      {
-        var value = _excelDataReader.GetValue(columnIndex);
-        return value == null
-          ? (propertyType.IsValueType ? Activator.CreateInstance(propertyType) : null)
-          : Convert.ChangeType(value, propertyType);
-      }
-
-      public void Reset()
-      {
-        _excelDataReader.Reset();
-      }
-
-      public TResult Current { get; private set; }
-
-      object IEnumerator.Current => Current;
-
-      public void Dispose()
-      {
-        Current = null;
-        _excelDataReader?.Dispose();
-      }
+      _excelDataReader?.Dispose();
     }
   }
 }
