@@ -15,9 +15,9 @@ public class SampleRow
   public string FirstName { get; set; } 
 }
 ```
-Create a new instance of **XcelEnumerable** and specifying the previously created type, which represents the row in an excel file, as a generic argument, passing stream or file name to constructor:
+Create a new instance of **XcelEnumerable** and specify the previously created type, which represents the row in an excel file, as a generic argument, passing stream or a file name to constructor:
 ```c#
-using(var excelEnumerable = XcelEnumerable<SampleRow>(stream); // or new XcelEnumerable<SampleRow>(fileName))
+using(var excelEnumerable = new XcelEnumerable<SampleRow>(stream)) // or new XcelEnumerable<SampleRow>(fileName))
 {
   ...
 }
