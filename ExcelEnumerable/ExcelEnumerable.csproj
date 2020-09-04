@@ -8,10 +8,12 @@
         <PackageProjectUrl>https://github.com/vecilije/ExcelEnumerable</PackageProjectUrl>
         <RepositoryUrl>https://github.com/vecilije/ExcelEnumerable</RepositoryUrl>
         <LicenseUrl>https://github.com/vecilije/ExcelEnumerable/blob/master/LICENSE</LicenseUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryType>github</RepositoryType>
         <PackageTags>excel linq c# enumerable</PackageTags>
         <Version>1.0.0</Version>
         <PackageVersion>1.1.0</PackageVersion>
+        <PackageReleaseNotes>Simplified implementation and bugfixing.</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
