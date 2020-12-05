@@ -15,22 +15,21 @@ namespace ExcelEnumerable.Tests
     }
 
     [Fact]
-    public void GetItems_ShouldCountThree()
+    public void ExcelEnumerable_CountsThree_AfterReading()
     {
-      //  Arrange
       var excelFileStream = GetExcelFileStream();
       List<ExampleRow> itemsFromExcel;
 
-      //  Act
       using (var excelEnumerable = new XcelEnumerable<ExampleRow>(excelFileStream))
+      {
         itemsFromExcel = excelEnumerable.ToList();
+      }
 
-      //  Assert
       Assert.Equal(3, itemsFromExcel.Count);
     }
 
     [Fact]
-    public void GetItems_ShouldMapCorrectData()
+    public void ExcelEnumerable_MapsCorrectData_AfterReading()
     {
       var excelFileStream = GetExcelFileStream();
       ExampleRow itemFromExcel;
@@ -50,6 +49,32 @@ namespace ExcelEnumerable.Tests
       };
       
       Assert.Equal(expectedItem, itemFromExcel);
+    }
+
+    [Fact]
+    public void ExcelEnumerable_ReadsDataFromCorrectSheet_WhenSheetNameProvided()
+    {
+      var excelFileStream = GetExcelFileStream();
+      List<ExampleAnotherSheetRow> anotherSheetRows;
+
+      using (var excelEnumerable = new XcelEnumerable<ExampleAnotherSheetRow>(excelFileStream, "Another Sheet"))
+      {
+        anotherSheetRows = excelEnumerable.ToList();
+      }
+      
+      Assert.Equal(4, anotherSheetRows.Count);
+      Assert.Equal("New York", anotherSheetRows.First().City);
+    }
+
+    [Fact]
+    public void ExcelEnumerable_ThrowsInvalidOperationException_WhenSheetNameNotFound()
+    {
+      var excelFileStream = GetExcelFileStream();
+
+      using (var excelEnumerable = new XcelEnumerable<ExampleAnotherSheetRow>(excelFileStream, "Unknown"))
+      {
+        Assert.Throws<InvalidOperationException>(excelEnumerable.ToList);
+      }
     }
 
     private Stream GetExcelFileStream()
