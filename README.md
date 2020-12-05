@@ -21,6 +21,7 @@ Create a new instance of `XcelEnumerable` and specify the previously created typ
 
 ```c#
 using(var excelEnumerable = new XcelEnumerable<SampleRow>(stream)) // or new XcelEnumerable<SampleRow>("fileName"))
+
 {
   var filteredRows = excelEnumerable.Where(r => r.Email.Contains("domain.com")).ToList();
 }
