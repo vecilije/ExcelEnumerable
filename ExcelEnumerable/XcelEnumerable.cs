@@ -13,10 +13,25 @@ namespace ExcelEnumerable
   {
     private readonly IExcelDataReader _excelDataReader;
     private readonly Dictionary<int, PropertyInfo> _columnsMapping;
+    private readonly string _sheetName;
 
     public XcelEnumerable(string fileName)
       : this(File.OpenRead(fileName))
     {
+    }
+
+    public XcelEnumerable(string fileName, string sheetName)
+      : this(File.OpenRead(fileName), sheetName)
+    {
+    }
+
+    public XcelEnumerable(Stream stream, string sheetName)
+      : this(stream)
+    {
+      if(string.IsNullOrWhiteSpace(sheetName))
+        throw new ArgumentException("The provided sheet name is empty.", nameof(sheetName));
+      
+      _sheetName = sheetName;
     }
 
     public XcelEnumerable(Stream stream)
@@ -27,6 +42,8 @@ namespace ExcelEnumerable
 
     public IEnumerator<T> GetEnumerator()
     {
+      EnsureCorrectSheetSelected();
+      
       MapColumnsWithProperties();
 
       while (_excelDataReader.Read())
@@ -37,6 +54,24 @@ namespace ExcelEnumerable
 
         yield return resultItem;
       }
+    }
+
+    private void EnsureCorrectSheetSelected()
+    {
+      if (string.IsNullOrWhiteSpace(_sheetName))
+        return;
+
+      bool isSheetFound;
+      while (true)
+      {
+        isSheetFound = _excelDataReader.Name == _sheetName;
+        if (isSheetFound) break;
+
+        if (!_excelDataReader.NextResult()) break;
+      }
+      
+      if(!isSheetFound)
+        throw new InvalidOperationException($"The sheet '{_sheetName}' cannot be found.");
     }
 
     private void MapColumnsWithProperties()
