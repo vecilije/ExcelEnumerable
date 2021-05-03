@@ -4,6 +4,8 @@ namespace ExcelEnumerable.Tests
 {
   public class ExampleRow
   {
+    public int Id { get; set; }
+    
     [XcelEnumerableColumn("First Name")]
     public string FirstName { get; set; }
     

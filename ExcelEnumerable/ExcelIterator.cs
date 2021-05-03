@@ -24,9 +24,9 @@ namespace ExcelEnumerable
     {
       _dataReader.Reset();
 
-      if (!string.IsNullOrWhiteSpace(_configuration.SheetName)) EnsureSheetSelected();
+      EnsureCorrectSheetSelected();
 
-      if (_configuration.FirstRowContainsColumnNames) EnsureColumnNamesResolved();
+      EnsureColumnNamesResolved();
 
       while (_dataReader.Read())
       {
@@ -39,47 +39,54 @@ namespace ExcelEnumerable
             : _dataReader.GetValue(propertyMap.ColumnIndex);
 
           propertyMap.Property.SetValue(instance,
-            propertyMap.SourceValueConverter.ConvertValue(valueFromExcel, propertyMap.Property.PropertyType));
+            propertyMap.SourceValueConverter.ConvertValue(valueFromExcel));
         }
 
         yield return instance;
       }
     }
 
-    private void EnsureSheetSelected()
+    private void EnsureCorrectSheetSelected()
     {
-      if (string.IsNullOrWhiteSpace(_configuration.SheetName))
-        return;
+      if (string.IsNullOrWhiteSpace(_configuration.SheetName)) return;
 
-      bool isSheetFound;
-      while (true)
-      {
-        isSheetFound = _dataReader.Name == _configuration.SheetName;
-        if (isSheetFound) break;
-
-        if (!_dataReader.NextResult()) break;
-      }
-
-      if (!isSheetFound)
-        throw new InvalidOperationException(MessageDefaults.SheetNameNotFound(_configuration.SheetName));
+      while (!_dataReader.Name.Equals(_configuration.SheetName, StringComparison.OrdinalIgnoreCase))
+        if (!_dataReader.NextResult()) 
+          throw new InvalidOperationException(MessageDefaults.SheetNotFound(_configuration.SheetName));
     }
 
     private void EnsureColumnNamesResolved()
     {
+      if (!_configuration.FirstRowContainsColumnNames)
+      {
+        _columnIndexAndNamePairs = new Dictionary<string, int>();
+        return;
+      };
+
       if (_columnIndexAndNamePairs != null) return;
 
-      if (!_dataReader.Read()) return;
+      if (!_dataReader.Read()) throw new InvalidOperationException(MessageDefaults.CannotReadColumnNames);
+      
+      if (_dataReader.FieldCount == 0) throw new InvalidOperationException(MessageDefaults.CannotReadColumnNames);
 
-      _columnIndexAndNamePairs = new Dictionary<string, int>();
+      _columnIndexAndNamePairs = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
       for (var columnIndex = 0; columnIndex < _dataReader.FieldCount; columnIndex++)
-        _columnIndexAndNamePairs.Add(_dataReader.GetString(columnIndex), columnIndex);
+      {
+        var columnName = _dataReader.GetString(columnIndex);
+
+        if (string.IsNullOrWhiteSpace(columnName))
+          if(_configuration.ShouldSkipEmptyColumnNames) continue;
+          else throw new InvalidOperationException(MessageDefaults.EmptyColumnNameFound);
+        
+        _columnIndexAndNamePairs.Add(columnName, columnIndex);
+      }
     }
 
     private int ResolveIndexByName(PropertyMap<T> propertyMap) =>
       _columnIndexAndNamePairs.TryGetValue(propertyMap.ColumnName, out var columnIndex)
-        ? columnIndex : throw new InvalidOperationException(
-          MessageDefaults.CannotMapColumnByName(propertyMap.ColumnName));
+        ? columnIndex
+        : throw new InvalidOperationException(MessageDefaults.CannotMapColumnByName(propertyMap.ColumnName));
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
