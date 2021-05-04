@@ -1,5 +1,3 @@
-using System;
-
 namespace ExcelEnumerable.ValueConverters
 {
   public interface ISourceValueConverter

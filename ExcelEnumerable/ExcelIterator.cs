@@ -3,7 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using ExcelDataReader;
+using ExcelEnumerable.Configuration;
+using ExcelEnumerable.Defaults;
 
 namespace ExcelEnumerable
 {
@@ -34,7 +37,7 @@ namespace ExcelEnumerable
 
         foreach (var propertyMap in _configuration.PropertyMaps.Where(p => !p.Ignored))
         {
-          var valueFromExcel = propertyMap.MapStrategy == PropertyMapStrategy.ByName
+          var valueFromExcel = propertyMap.MapStrategy == ExcelIteratorPropertyMapStrategy.ByName
             ? _dataReader.GetValue(ResolveIndexByName(propertyMap))
             : _dataReader.GetValue(propertyMap.ColumnIndex);
 
@@ -51,7 +54,7 @@ namespace ExcelEnumerable
       if (string.IsNullOrWhiteSpace(_configuration.SheetName)) return;
 
       while (!_dataReader.Name.Equals(_configuration.SheetName, StringComparison.OrdinalIgnoreCase))
-        if (!_dataReader.NextResult()) 
+        if (!_dataReader.NextResult())
           throw new InvalidOperationException(MessageDefaults.SheetNotFound(_configuration.SheetName));
     }
 
@@ -61,12 +64,12 @@ namespace ExcelEnumerable
       {
         _columnIndexAndNamePairs = new Dictionary<string, int>();
         return;
-      };
-
+      }
+      
       if (_columnIndexAndNamePairs != null) return;
 
       if (!_dataReader.Read()) throw new InvalidOperationException(MessageDefaults.CannotReadColumnNames);
-      
+
       if (_dataReader.FieldCount == 0) throw new InvalidOperationException(MessageDefaults.CannotReadColumnNames);
 
       _columnIndexAndNamePairs = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -75,18 +78,22 @@ namespace ExcelEnumerable
       {
         var columnName = _dataReader.GetString(columnIndex);
 
+        if (_configuration.SkipWhitespaceForColumnNames)
+          columnName = new Regex(@"\s+").Replace(columnName, string.Empty);
+
         if (string.IsNullOrWhiteSpace(columnName))
-          if(_configuration.ShouldSkipEmptyColumnNames) continue;
+          if (_configuration.ShouldSkipEmptyColumnNames) continue;
           else throw new InvalidOperationException(MessageDefaults.EmptyColumnNameFound);
-        
+
         _columnIndexAndNamePairs.Add(columnName, columnIndex);
       }
     }
 
-    private int ResolveIndexByName(PropertyMap<T> propertyMap) =>
-      _columnIndexAndNamePairs.TryGetValue(propertyMap.ColumnName, out var columnIndex)
+    private int ResolveIndexByName(ExcelIteratorPropertyMap<T> excelIteratorPropertyMap) =>
+      _columnIndexAndNamePairs.TryGetValue(excelIteratorPropertyMap.ColumnName, out var columnIndex)
         ? columnIndex
-        : throw new InvalidOperationException(MessageDefaults.CannotMapColumnByName(propertyMap.ColumnName));
+        : throw new InvalidOperationException(
+          MessageDefaults.CannotMapColumnByName(excelIteratorPropertyMap.ColumnName));
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 

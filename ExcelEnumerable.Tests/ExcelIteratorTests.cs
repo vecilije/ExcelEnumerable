@@ -14,7 +14,7 @@ namespace ExcelEnumerable.Tests
     }
 
     [Fact]
-    public void Iterator_MapsCorrectData_WhenMixedConfiguration()
+    public void Iterator_MapsCorrectNumberOfItems_WhenMixedConfiguration()
     {
       using var iterator = ExcelIteratorCreator.Create<ExampleRow>(GetFileStream("Example.xlsx"),
         builder =>
@@ -23,6 +23,26 @@ namespace ExcelEnumerable.Tests
           builder.SkipEmptyColumnNames(flag: true);
           builder.MapByName(p => p.FirstName, "First NAME");
           builder.MapByIndex(p => p.LastName, 1);
+          builder.Ignore(p => p.Address);
+          builder.MapByName(p => p.IsActive, "is AcTIve");
+          builder.ConvertSourceValue(p => p.IsActive, sourceValue => sourceValue?.ToString() == "t");
+        });
+
+      var items = iterator.ToList();
+
+      Assert.Equal(3, items.Count);
+    }
+
+    [Fact]
+    public void Iterator_MapsCorrectData_WhenMixedConfiguration()
+    {
+      using var iterator = ExcelIteratorCreator.Create<ExampleRow>(GetFileStream("Example.xlsx"),
+        builder =>
+        {
+          builder.FirstRowContainsColumnNames(flag: true);
+          builder.SkipEmptyColumnNames(flag: true);
+          builder.MapByName(p => p.FirstName, "First NAME");
+          builder.MapByIndex(p => p.LastName, 2);
           builder.Ignore(p => p.Address);
           builder.MapByName(p => p.IsActive, "is AcTIve");
           builder.ConvertSourceValue(p => p.IsActive, sourceValue => sourceValue?.ToString() == "t");
@@ -134,6 +154,28 @@ namespace ExcelEnumerable.Tests
 
       var exception = Assert.ThrowsAny<InvalidOperationException>(() => iterator.ToList());
       Assert.Equal($"Cannot map column index by name 'Non-Existing Column'", exception.Message);
+    }
+
+    [Fact]
+    public void Iterator_MapsCorrectData_WhenSkippingWhitespaceForColumnName()
+    {
+      using var iterator = ExcelIteratorCreator.Create<ExampleRow>(GetFileStream("Example.xlsx"),
+        builder =>
+        {
+          builder.FirstRowContainsColumnNames(flag: true);
+          builder.SkipWhitespaceForColumnNames(flag: true);
+          
+          builder.ConvertSourceValue(p => p.IsActive, sourceValue => sourceValue?.ToString() == "t");
+        });
+
+      var firstItem = iterator.First();
+
+      Assert.Equal(1, firstItem.Id);
+      Assert.Equal("Unknown", firstItem.FirstName);
+      Assert.Equal("User", firstItem.LastName);
+      Assert.Equal("Sample Address 11", firstItem.Address);
+      Assert.Equal(new DateTime(1990, 3, 7), firstItem.Date);
+      Assert.True(firstItem.IsActive);
     }
 
     private Stream GetFileStream(string fileName)

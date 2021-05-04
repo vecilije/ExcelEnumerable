@@ -1,12 +1,12 @@
 using System.Reflection;
 using ExcelEnumerable.ValueConverters;
 
-namespace ExcelEnumerable
+namespace ExcelEnumerable.Configuration
 {
-  public class PropertyMap<T> where T : class, new()
+  public class ExcelIteratorPropertyMap<T> where T : class, new()
   {
     public PropertyInfo Property { get; set; }
-    public PropertyMapStrategy MapStrategy { get; set; }
+    public ExcelIteratorPropertyMapStrategy MapStrategy { get; set; }
     public int ColumnIndex { get; set; }
     public string ColumnName { get; set; }
     public bool Ignored { get; set; }
