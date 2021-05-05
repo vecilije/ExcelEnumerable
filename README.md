@@ -52,22 +52,26 @@ builder.FirstRowContainsColumnNames(flag: true);
 //  Skips any empty column names, only works when FirstRowContainsColumnNames is true. Default: true
 builder.SkipEmptyColumnNames(flag: true);
 
-//  Exclude any whitespace when reading colum names from excel file. This might be useful for easy mapping
-//  properties like FirstName, LastName, IsActive with column names 'First Name', '   Last   Name', ' Is Active'
-//  without manually configuring map for each property. Only works when FirstRowContainsColumnNames is true. Default: false
+//  Exclude any whitespace when reading colum names from excel file. This might be useful for easy 
+//  mapping properties like FirstName, LastName, IsActive with column names 'First Name', 
+//  '   Last   Name', ' Is Active' without manually configuring map for each property. 
+//  Only works when FirstRowContainsColumnNames is true. Default: false
 builder.SkipWhitespaceForColumnNames(flag: true);
 
-//  Map property by column name (case insensitive), works only when FirstRowContainsColumnNames is true.
+//  Map property by column name (case insensitive).
 //  Without this configuration, the column name must exactly match property name (case insensitive)
+//  works only when FirstRowContainsColumnNames is true
 builder.MapByName(p => p.FirstName, "First NAME");
 
-//  Map property by column index. When FirstRowContainsColumnNames is false, all columns have to be mapped by index.
+//  Map property by column index. When FirstRowContainsColumnNames is false, all columns have 
+//  to be mapped by index.
 builder.MapByIndex(p => p.LastName, 2);
 
 //  Ignore property mapping
 builder.Ignore(p => p.Address);
 
-//  Configure custom value conversion for property or implement ISourceValueConverter and pass an instance of it.
+//  Configure custom value conversion for property or implement ISourceValueConverter 
+//  and pass an instance of it.
 builder.ConvertSourceValue(p => p.IsActive, sourceValue => sourceValue?.ToString() == "TRUE");
 builder.ConvertSourceValue(p => p.IsActive, new MySourceValueConverter());
 
