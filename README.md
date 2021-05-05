@@ -1,12 +1,12 @@
-#ExcelEnumerable
+# ExcelEnumerable
 Lightweight .NET library which enables mapping POCO objects to Excel rows, with ability to apply C# LINQ expressions. It uses [ExcelDataReader](https://github.com/ExcelDataReader/ExcelDataReader) for reading Excel files.
 
 Any contribution is very welcome, so, please feel free to fork and create pull requests, including any issue you find with the library.
 
-##Migration to version 2.x.x
+## Migration to version 2.x.x
 `IExcelEnumerable<T>`, `XcelEnumerable<T>` and `[XcelEnumerableColumn("ColumnName")]` are still existing, but are obsolete and will be removed in future versions. Consider using `ExcelIteratorCreator`.
 
-##Basic Usage
+## Basic Usage
 As an example, let's take following Excel file structure:
 
 Id | FirstName | LastName | IsActive
@@ -37,7 +37,7 @@ using (var excelIterator = ExcelIteratorCreator.Create<User>(stream))
 
 `IExcelIterator<T>` implements `IEnumerable<T>`, which means that it can be used in `foreach` statements, and various LINQ expressions can be applied to it.
 
-##Configuration
+## Configuration
 Additional configuration for column mapping, value conversion and default behaviour can be passed as a second argument of the `ExcelIteratorCreator.Create(stream, config)` method.
 
 ```c#
@@ -81,7 +81,7 @@ using (var excelIterator = ExcelIteratorCreator.Create<User>(stream), config)
 }
 ```
 
-##Important note when targeting .NET Core Application
+## Important note when targeting .NET Core Application
 When targeting .NET Core, it's important to add dependency on `System.Text.Encoding.CodePages` and register the code page provider during application initialization:
 ```c#
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
