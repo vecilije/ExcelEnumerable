@@ -3,7 +3,7 @@ using ExcelEnumerable.ValueConverters;
 
 namespace ExcelEnumerable.Configuration
 {
-  public class ExcelIteratorPropertyMap<T> where T : class, new()
+  public class ExcelIteratorPropertyMap
   {
     public PropertyInfo Property { get; set; }
     public ExcelIteratorPropertyMapStrategy MapStrategy { get; set; }

@@ -16,5 +16,9 @@ namespace ExcelEnumerable
 
       return new ExcelIterator<T>(fileStream, configurationBuilder.Build());
     }
+
+    public static IExcelIterator<T> Create<T>(Stream fileStream, ExcelIteratorConfiguration configuration)
+      where T : class, new() =>
+      new ExcelIterator<T>(fileStream, configuration);
   }
 }

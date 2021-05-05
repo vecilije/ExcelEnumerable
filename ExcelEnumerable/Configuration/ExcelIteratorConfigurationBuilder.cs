@@ -12,7 +12,7 @@ namespace ExcelEnumerable.Configuration
     private string _sheetName;
     private bool _firstRowContainsColumnNames;
     private bool _emptyColumnNamesSkipped;
-    private readonly List<ExcelIteratorPropertyMap<T>> _propertyMaps;
+    private readonly List<ExcelIteratorPropertyMap> _propertyMaps;
     private bool _skipWhitespaceForColumnNames;
 
     private ExcelIteratorConfigurationBuilder()
@@ -23,7 +23,7 @@ namespace ExcelEnumerable.Configuration
       _emptyColumnNamesSkipped = true;
 
       _propertyMaps = typeof(T).GetProperties()
-        .Select(p => new ExcelIteratorPropertyMap<T>
+        .Select(p => new ExcelIteratorPropertyMap
         {
           Property = p,
           MapStrategy = ExcelIteratorPropertyMapStrategy.ByName,
@@ -97,7 +97,7 @@ namespace ExcelEnumerable.Configuration
       propertyMap.Ignored = true;
     }
 
-    private ExcelIteratorPropertyMap<T> GetPropertyMapOrThrowException<TProperty>(Expression<Func<T, TProperty>> propertyExpression)
+    private ExcelIteratorPropertyMap GetPropertyMapOrThrowException<TProperty>(Expression<Func<T, TProperty>> propertyExpression)
     {
       var propertyName = (propertyExpression.Body as MemberExpression)?.Member.Name;
 
@@ -111,8 +111,8 @@ namespace ExcelEnumerable.Configuration
       return propertyMap;
     }
 
-    public ExcelIteratorConfiguration<T> Build() =>
-      new ExcelIteratorConfiguration<T>
+    public ExcelIteratorConfiguration Build() =>
+      new ExcelIteratorConfiguration
       {
         SkipWhitespaceForColumnNames = _skipWhitespaceForColumnNames,
         SheetName = _sheetName,

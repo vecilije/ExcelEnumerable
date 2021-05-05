@@ -16,6 +16,8 @@
     <ItemGroup>
       <None Remove="Example.xlsx" />
       <EmbeddedResource Include="Example.xlsx" />
+      <None Remove="Example_with_empty_columns.xlsx" />
+      <EmbeddedResource Include="Example_with_empty_columns.xlsx" />
     </ItemGroup>
 
     <ItemGroup>

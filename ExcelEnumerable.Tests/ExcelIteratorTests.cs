@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using ExcelEnumerable.Configuration;
 using Xunit;
 
 namespace ExcelEnumerable.Tests
@@ -22,7 +23,7 @@ namespace ExcelEnumerable.Tests
           builder.FirstRowContainsColumnNames(flag: true);
           builder.SkipEmptyColumnNames(flag: true);
           builder.MapByName(p => p.FirstName, "First NAME");
-          builder.MapByIndex(p => p.LastName, 1);
+          builder.MapByIndex(p => p.LastName, 2);
           builder.Ignore(p => p.Address);
           builder.MapByName(p => p.IsActive, "is AcTIve");
           builder.ConvertSourceValue(p => p.IsActive, sourceValue => sourceValue?.ToString() == "t");
@@ -31,6 +32,37 @@ namespace ExcelEnumerable.Tests
       var items = iterator.ToList();
 
       Assert.Equal(3, items.Count);
+    }
+
+    [Fact]
+    public void Iterator_MapsCorrectData_WhenMixedConfigurationPasswedAsAnArgument()
+    {
+      var builder = ExcelIteratorConfigurationBuilder<ExampleRow>.Default();
+      
+      builder.FirstRowContainsColumnNames(flag: true);
+      builder.SkipEmptyColumnNames(flag: true);
+      builder.MapByName(p => p.FirstName, "First NAME");
+      builder.MapByIndex(p => p.LastName, 2);
+      builder.Ignore(p => p.Address);
+      builder.MapByName(p => p.IsActive, "is AcTIve");
+      builder.ConvertSourceValue(p => p.IsActive, sourceValue => sourceValue?.ToString() == "t");
+
+      var config = builder.Build();
+
+
+      using var iterator = ExcelIteratorCreator.Create<ExampleRow>(GetFileStream("Example.xlsx"), config);
+
+      var items = iterator.ToList();
+      var firstItem = iterator.First();
+
+      Assert.Equal(3, items.Count);
+
+      Assert.Equal(1, firstItem.Id);
+      Assert.Equal("Unknown", firstItem.FirstName);
+      Assert.Equal("User", firstItem.LastName);
+      Assert.True(string.IsNullOrWhiteSpace(firstItem.Address));
+      Assert.Equal(new DateTime(1990, 3, 7), firstItem.Date);
+      Assert.True(firstItem.IsActive);
     }
 
     [Fact]
@@ -176,6 +208,102 @@ namespace ExcelEnumerable.Tests
       Assert.Equal("Sample Address 11", firstItem.Address);
       Assert.Equal(new DateTime(1990, 3, 7), firstItem.Date);
       Assert.True(firstItem.IsActive);
+    }
+
+    [Fact]
+    public void Iterator_MapsCorrectData_WhenPassingSourceValueConverterImplementation()
+    {
+      using var iterator = ExcelIteratorCreator.Create<ExampleRow>(GetFileStream("Example.xlsx"),
+        builder =>
+        {
+          builder.FirstRowContainsColumnNames(flag: true);
+          builder.SkipWhitespaceForColumnNames(flag: true);
+          
+          builder.ConvertSourceValue(p => p.IsActive, new BoolSourceValueConverter("t", "f"));
+        });
+
+      var firstItem = iterator.First();
+
+      Assert.Equal(1, firstItem.Id);
+      Assert.Equal("Unknown", firstItem.FirstName);
+      Assert.Equal("User", firstItem.LastName);
+      Assert.Equal("Sample Address 11", firstItem.Address);
+      Assert.Equal(new DateTime(1990, 3, 7), firstItem.Date);
+      Assert.True(firstItem.IsActive);
+    }
+
+    [Fact]
+    public void Iterator_MapsCorrectNumberOfItemsAndData_WhenIteratingTwice()
+    {
+      using var iterator = ExcelIteratorCreator.Create<ExampleRow>(GetFileStream("Example.xlsx"),
+        builder =>
+        {
+          builder.FirstRowContainsColumnNames(flag: true);
+          builder.SkipWhitespaceForColumnNames(flag: true);
+          
+          builder.ConvertSourceValue(p => p.IsActive, new BoolSourceValueConverter("t", "f"));
+        });
+
+      var firstList = iterator.ToList();
+      var secondList = iterator.ToList();
+
+      Assert.Equal(3, firstList.Count);
+      Assert.Equal(3, secondList.Count);
+
+      var firstItemFromSecondList = secondList.First();
+
+      Assert.Equal(1, firstItemFromSecondList.Id);
+      Assert.Equal("Unknown", firstItemFromSecondList.FirstName);
+      Assert.Equal("User", firstItemFromSecondList.LastName);
+      Assert.Equal("Sample Address 11", firstItemFromSecondList.Address);
+      Assert.Equal(new DateTime(1990, 3, 7), firstItemFromSecondList.Date);
+      Assert.True(firstItemFromSecondList.IsActive);
+    }
+    
+    [Fact]
+    public void Iterator_SkipsEmptyColumnNames_WhenConfigured()
+    {
+      using var iterator = ExcelIteratorCreator.Create<ExampleRow>(GetFileStream("Example_with_empty_columns.xlsx"),
+        builder =>
+        {
+          builder.FirstRowContainsColumnNames(flag: true);
+          builder.SkipWhitespaceForColumnNames(flag: true);
+          builder.SkipEmptyColumnNames(flag: true);
+          
+          builder.ConvertSourceValue(p => p.IsActive, new BoolSourceValueConverter("t", "f"));
+        });
+
+      var firstList = iterator.ToList();
+      var secondList = iterator.ToList();
+
+      Assert.Equal(3, firstList.Count);
+      Assert.Equal(3, secondList.Count);
+
+      var firstItemFromSecondList = secondList.First();
+
+      Assert.Equal(1, firstItemFromSecondList.Id);
+      Assert.Equal("Unknown", firstItemFromSecondList.FirstName);
+      Assert.Equal("User", firstItemFromSecondList.LastName);
+      Assert.Equal("Sample Address 11", firstItemFromSecondList.Address);
+      Assert.Equal(new DateTime(1990, 3, 7), firstItemFromSecondList.Date);
+      Assert.True(firstItemFromSecondList.IsActive);
+    }
+    
+    [Fact]
+    public void Iterator_ThrowsExceptionOnEmptyColumn_WhenEmptyColumnSkippingNotConfigured()
+    {
+      using var iterator = ExcelIteratorCreator.Create<ExampleRow>(GetFileStream("Example_with_empty_columns.xlsx"),
+        builder =>
+        {
+          builder.FirstRowContainsColumnNames(flag: true);
+          builder.SkipWhitespaceForColumnNames(flag: true);
+          builder.SkipEmptyColumnNames(flag: false);
+          
+          builder.ConvertSourceValue(p => p.IsActive, new BoolSourceValueConverter("t", "f"));
+        });
+
+      var exception = Assert.ThrowsAny<InvalidOperationException>(() => iterator.ToList());
+      Assert.Equal("Empty column name found.", exception.Message);
     }
 
     private Stream GetFileStream(string fileName)

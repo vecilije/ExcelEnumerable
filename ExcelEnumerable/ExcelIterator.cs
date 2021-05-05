@@ -12,12 +12,12 @@ namespace ExcelEnumerable
 {
   internal class ExcelIterator<T> : IExcelIterator<T> where T : class, new()
   {
-    private readonly ExcelIteratorConfiguration<T> _configuration;
+    private readonly ExcelIteratorConfiguration _configuration;
     private readonly IExcelDataReader _dataReader;
 
     private IDictionary<string, int> _columnIndexAndNamePairs;
 
-    public ExcelIterator(Stream stream, ExcelIteratorConfiguration<T> configuration)
+    public ExcelIterator(Stream stream, ExcelIteratorConfiguration configuration)
     {
       _configuration = configuration;
       _dataReader = ExcelReaderFactory.CreateReader(stream);
@@ -65,10 +65,9 @@ namespace ExcelEnumerable
         _columnIndexAndNamePairs = new Dictionary<string, int>();
         return;
       }
+      if (!_dataReader.Read()) throw new InvalidOperationException(MessageDefaults.CannotReadColumnNames);
       
       if (_columnIndexAndNamePairs != null) return;
-
-      if (!_dataReader.Read()) throw new InvalidOperationException(MessageDefaults.CannotReadColumnNames);
 
       if (_dataReader.FieldCount == 0) throw new InvalidOperationException(MessageDefaults.CannotReadColumnNames);
 
@@ -78,18 +77,18 @@ namespace ExcelEnumerable
       {
         var columnName = _dataReader.GetString(columnIndex);
 
-        if (_configuration.SkipWhitespaceForColumnNames)
-          columnName = new Regex(@"\s+").Replace(columnName, string.Empty);
-
         if (string.IsNullOrWhiteSpace(columnName))
           if (_configuration.ShouldSkipEmptyColumnNames) continue;
           else throw new InvalidOperationException(MessageDefaults.EmptyColumnNameFound);
+
+        if (_configuration.SkipWhitespaceForColumnNames)
+          columnName = new Regex(@"\s+").Replace(columnName, string.Empty);
 
         _columnIndexAndNamePairs.Add(columnName, columnIndex);
       }
     }
 
-    private int ResolveIndexByName(ExcelIteratorPropertyMap<T> excelIteratorPropertyMap) =>
+    private int ResolveIndexByName(ExcelIteratorPropertyMap excelIteratorPropertyMap) =>
       _columnIndexAndNamePairs.TryGetValue(excelIteratorPropertyMap.ColumnName, out var columnIndex)
         ? columnIndex
         : throw new InvalidOperationException(
