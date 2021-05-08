@@ -3,17 +3,18 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
         <Title>ExcelEnumerable</Title>
-        <Description>ExcelDataReader wrapper for supporting LINQ while reading excel files.</Description>
-        <Copyright>vecilije 2020</Copyright>
+        <Description>Lightweight .NET library which enables mapping POCO objects to Excel rows, with ability to apply C# LINQ expressions. It uses ExcelDataReader for reading Excel files.</Description>
+        <Copyright>vecilije 2021</Copyright>
         <PackageProjectUrl>https://github.com/vecilije/ExcelEnumerable</PackageProjectUrl>
         <RepositoryUrl>https://github.com/vecilije/ExcelEnumerable</RepositoryUrl>
         <LicenseUrl>https://github.com/vecilije/ExcelEnumerable/blob/master/LICENSE</LicenseUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <RepositoryType>github</RepositoryType>
-        <PackageTags>excel linq c# enumerable</PackageTags>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>excel linq c# enumerable enumerator iterator</PackageTags>
         <Version>1.0.0</Version>
-        <PackageVersion>1.2.0</PackageVersion>
+        <PackageVersion>2.0.0</PackageVersion>
         <PackageReleaseNotes>Supporting sheet selection.</PackageReleaseNotes>
+        <Authors>vecilije</Authors>
     </PropertyGroup>
 
     <ItemGroup>

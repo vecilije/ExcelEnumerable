@@ -5,9 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using ExcelDataReader;
+using ExcelEnumerable.Defaults;
 
 namespace ExcelEnumerable
 {
+  [Obsolete(MessageDefaults.XcelEnumerableObsolete)]
   public class XcelEnumerable<T> : IExcelEnumerable<T>
     where T : class
   {
