@@ -52,11 +52,13 @@ builder.FirstRowContainsColumnNames(flag: true);
 //  Skips any empty column names, only works when FirstRowContainsColumnNames is true. Default: true
 builder.SkipEmptyColumnNames(flag: true);
 
-//  Exclude any whitespace when reading colum names from excel file. This might be useful for easy 
+//  Trim any whitespace when reading colum names from excel file. This can be useful for easy 
 //  mapping properties like FirstName, LastName, IsActive with column names 'First Name', 
-//  '   Last   Name', ' Is Active' without manually configuring map for each property. 
+//  '   Last   Name', ' Is Active' without manually configuring map for each property.
+//  When using this behaviour, all columns will be read from excel without whitespace, so 
+//  for example, using .MapByName(p => p.FirstName, "First Name") will not work anymore.
 //  Only works when FirstRowContainsColumnNames is true. Default: false
-builder.SkipWhitespaceForColumnNames(flag: true);
+builder.TrimWhitespaceForColumnNames(flag: true);
 
 //  Map property by column name (case insensitive).
 //  Without this configuration, the column name must exactly match property name (case insensitive)
