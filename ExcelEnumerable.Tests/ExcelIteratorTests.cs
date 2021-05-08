@@ -35,7 +35,7 @@ namespace ExcelEnumerable.Tests
     }
 
     [Fact]
-    public void Iterator_MapsCorrectData_WhenMixedConfigurationPasswedAsAnArgument()
+    public void Iterator_MapsCorrectData_WhenMixedConfigurationPassedAsAnArgument()
     {
       var builder = ExcelIteratorConfigurationBuilder<ExampleRow>.Default();
       
@@ -195,7 +195,7 @@ namespace ExcelEnumerable.Tests
         builder =>
         {
           builder.FirstRowContainsColumnNames(flag: true);
-          builder.SkipWhitespaceForColumnNames(flag: true);
+          builder.TrimWhitespaceForColumnNames(flag: true);
           
           builder.ConvertSourceValue(p => p.IsActive, sourceValue => sourceValue?.ToString() == "t");
         });
@@ -217,7 +217,7 @@ namespace ExcelEnumerable.Tests
         builder =>
         {
           builder.FirstRowContainsColumnNames(flag: true);
-          builder.SkipWhitespaceForColumnNames(flag: true);
+          builder.TrimWhitespaceForColumnNames(flag: true);
           
           builder.ConvertSourceValue(p => p.IsActive, new BoolSourceValueConverter("t", "f"));
         });
@@ -239,7 +239,7 @@ namespace ExcelEnumerable.Tests
         builder =>
         {
           builder.FirstRowContainsColumnNames(flag: true);
-          builder.SkipWhitespaceForColumnNames(flag: true);
+          builder.TrimWhitespaceForColumnNames(flag: true);
           
           builder.ConvertSourceValue(p => p.IsActive, new BoolSourceValueConverter("t", "f"));
         });
@@ -267,7 +267,7 @@ namespace ExcelEnumerable.Tests
         builder =>
         {
           builder.FirstRowContainsColumnNames(flag: true);
-          builder.SkipWhitespaceForColumnNames(flag: true);
+          builder.TrimWhitespaceForColumnNames(flag: true);
           builder.SkipEmptyColumnNames(flag: true);
           
           builder.ConvertSourceValue(p => p.IsActive, new BoolSourceValueConverter("t", "f"));
@@ -296,7 +296,7 @@ namespace ExcelEnumerable.Tests
         builder =>
         {
           builder.FirstRowContainsColumnNames(flag: true);
-          builder.SkipWhitespaceForColumnNames(flag: true);
+          builder.TrimWhitespaceForColumnNames(flag: true);
           builder.SkipEmptyColumnNames(flag: false);
           
           builder.ConvertSourceValue(p => p.IsActive, new BoolSourceValueConverter("t", "f"));

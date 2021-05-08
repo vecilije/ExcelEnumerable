@@ -81,7 +81,7 @@ namespace ExcelEnumerable
           if (_configuration.ShouldSkipEmptyColumnNames) continue;
           else throw new InvalidOperationException(MessageDefaults.EmptyColumnNameFound);
 
-        if (_configuration.SkipWhitespaceForColumnNames)
+        if (_configuration.TrimWhitespaceForColumnNames)
           columnName = new Regex(@"\s+").Replace(columnName, string.Empty);
 
         _columnIndexAndNamePairs.Add(columnName, columnIndex);

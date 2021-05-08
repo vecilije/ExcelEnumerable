@@ -4,7 +4,7 @@ Lightweight .NET library which enables mapping POCO objects to Excel rows, with 
 Any contribution is very welcome, so, please feel free to fork and create pull requests, including any issue you find with the library.
 
 ## Migration to version 2.x.x
-`IExcelEnumerable<T>`, `XcelEnumerable<T>` and `[XcelEnumerableColumn("ColumnName")]` are still existing, but are obsolete and will be removed in future versions. Consider using `ExcelIteratorCreator`.
+`IExcelEnumerable<T>`, `XcelEnumerable<T>` and `[XcelEnumerableColumn("ColumnName")]` are still existing, but are obsolete and will be removed in future versions. Consider using `ExcelIteratorCreator` and `IExcelIterator<T>`.
 
 ## Basic Usage
 As an example, let's take following Excel file structure:
