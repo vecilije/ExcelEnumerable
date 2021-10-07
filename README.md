@@ -81,7 +81,7 @@ builder.ConvertSourceValue(p => p.IsActive, new MySourceValueConverter());
 var config = builder.Build();
 
 //  Pass the configuration
-using (var excelIterator = ExcelIteratorCreator.Create<User>(stream), config)
+using (var excelIterator = ExcelIteratorCreator.Create<User>(stream, config))
 {
     ...
 }
